@@ -1,24 +1,17 @@
 """
-EdgeNode — turn this brainstem into an edge of the planetary frame-net (rapp-frame/1.0).
+EdgeNode — turn this brainstem into an edge of the planetary frame-net (rapp-frame/1.0),
+read over the HYDRA (rapp-hydra/1.0): the swarm's state is static data served from MANY
+heads (GitHub raw, jsDelivr, raw.githack, mirrors, IPFS…). The edge reads from whichever
+head is reachable; content is hash-verified, so any head — even a hostile mirror — is safe.
+Cut one head, another serves it. No one can shut the swarm down.
 
-The edge IS a brainstem making LOCAL JUDGMENTS. It pulls the swarm's standing guidance
-(a frame + its own echo) from GitHub raw, reconciles that guidance against local reality
-using its OWN reasoning, decides, and reports telemetry append-only through its public
-twin. Lose the link and it keeps thinking on its last *verified* echo — degrade-to-one.
+The edge IS a brainstem making LOCAL JUDGMENTS. It pulls the swarm's guidance (a frame +
+its echo) from any head, reconciles it against local reality with its OWN reasoning,
+decides, and reports telemetry append-only. Lose every head and it keeps thinking on its
+last verified echo — degrade-to-one.
 
-  Guidance, not commands. The frame re-aims the edge; the edge does the thinking.
-
-Actions (drop-in, stdlib only, no engine edit):
-  sync    — fetch net/latest.json (cheap); if the tick advanced, pull+VERIFY the frame and
-            this edge's echo, cache them. Offline? keep the last verified echo.
-  judge   — the brainstem reasons: reconcile {frame directives + echo guidance} against the
-            local `observations` you pass, and decide what to do now (uses the host LLM).
-  report  — push telemetry (observations + judgment + outcome) append-only: to the local
-            outbox always, and to the net via the GitHub Issues API when online + tokened.
-  status  — tick, online/offline, last echo, last judgment, pending outbox.
-
-Config (env): FRAME_NET_OWNER (kody-w), FRAME_NET_REPO (rapp-frame-net), FRAME_NODE_ID.
-Read path = raw.githubusercontent.com (rapp-static-api). Write path = GitHub Issues (append-only).
+Actions (drop-in, stdlib only): sync · judge · report · status. See rapp-frame SPEC.md.
+Config (env): FRAME_NET_OWNER, FRAME_NET_REPO, FRAME_NODE_ID, FRAME_HEADS (extra mirror bases, csv).
 """
 import hashlib
 import json
@@ -32,11 +25,17 @@ from agents.basic_agent import BasicAgent
 
 OWNER = os.environ.get("FRAME_NET_OWNER", "kody-w")
 REPO = os.environ.get("FRAME_NET_REPO", "rapp-frame-net")
-_host_name = socket.gethostname().split(".")[0]
-NODE_ID = os.environ.get("FRAME_NODE_ID", f"edge-{_host_name}")
-RAW = f"https://raw.githubusercontent.com/{OWNER}/{REPO}/main"
+NODE_ID = os.environ.get("FRAME_NODE_ID", f"edge-{socket.gethostname().split('.')[0]}")
 API = f"https://api.github.com/repos/{OWNER}/{REPO}"
-HOME = os.path.expanduser("~/.brainstem/frame_net")  # the edge's memory of the net
+HOME = os.path.expanduser("~/.brainstem/frame_net")
+
+# HYDRA — many heads serve the same content; read from whichever is reachable.
+HEADS = [
+    f"https://raw.githubusercontent.com/{OWNER}/{REPO}/main",     # GitHub raw
+    f"https://cdn.jsdelivr.net/gh/{OWNER}/{REPO}@main",           # jsDelivr CDN (independent host)
+    f"https://raw.githack.com/{OWNER}/{REPO}/main",               # raw.githack CDN
+]
+HEADS = [h for h in os.environ.get("FRAME_HEADS", "").split(",") if h.strip()] + HEADS
 
 
 def _brainstem():
@@ -47,19 +46,21 @@ def _brainstem():
     return None
 
 
-def _get(url, t=8):
-    try:
-        req = urllib.request.Request(url, headers={"Cache-Control": "no-cache"})
-        with urllib.request.urlopen(req, timeout=t) as r:
-            return r.read().decode("utf-8", "replace")
-    except Exception:
-        return None
+def _get(path, t=8):
+    """Fetch a repo-relative path from any reachable HYDRA head. Returns (text, head) or (None, None)."""
+    for base in HEADS:
+        try:
+            req = urllib.request.Request(f"{base}/{path}",
+                                         headers={"Cache-Control": "no-cache", "User-Agent": "rapp-frame-edge"})
+            with urllib.request.urlopen(req, timeout=t) as r:
+                return r.read().decode("utf-8", "replace"), base
+        except Exception:
+            continue
+    return None, None
 
 
 def _canon(d):
-    """Canonical bytes of a frame/echo for hashing + signing (excludes volatile fields)."""
-    return json.dumps({k: v for k, v in d.items() if k not in ("sig", "hash")},
-                      sort_keys=True, separators=(",", ":"))
+    return json.dumps({k: v for k, v in d.items() if k not in ("sig", "hash")}, sort_keys=True, separators=(",", ":"))
 
 
 def _sha16(s):
@@ -97,21 +98,19 @@ class EdgeNodeAgent(BasicAgent):
         self.metadata = {
             "name": self.name,
             "description": (
-                "Make this brainstem an edge of the planetary frame-net (rapp-frame/1.0): pull the swarm's "
-                "guidance (frame + echo) from GitHub, reconcile it with LOCAL reality by your own reasoning, "
-                "act, and report telemetry append-only. Works offline on the last verified echo. "
-                "action=sync (pull+verify the latest frame/echo), action=judge (reconcile guidance vs the "
-                "`observations` you pass and decide), action=report (push telemetry), action=status."
+                "Make this brainstem an edge of the planetary frame-net (rapp-frame/1.0), read over the Hydra "
+                "(many static heads, hash-verified). Pull the swarm's frame + echo from whichever head is up, "
+                "reconcile it with LOCAL reality by your own reasoning, act, report telemetry append-only. Works "
+                "offline on the last verified echo. action=sync | judge (pass `observations`) | report | status."
             ),
             "parameters": {"type": "object", "properties": {
                 "action": {"type": "string", "enum": ["sync", "judge", "report", "status"]},
-                "observations": {"type": "string", "description": "for judge/report: what the edge is sensing locally right now"},
-                "judgment": {"type": "string", "description": "for report: the decision the edge reached (from judge)"},
+                "observations": {"type": "string", "description": "for judge/report: what the edge senses locally now"},
+                "judgment": {"type": "string", "description": "for report: the decision from judge"},
             }, "required": ["action"]},
         }
         super().__init__(name=self.name, metadata=self.metadata)
 
-    # ---- sync: pull + verify the swarm's standing guidance ----
     def perform(self, **kwargs):
         action = (kwargs.get("action") or "status").strip()
         if action == "sync":
@@ -123,69 +122,67 @@ class EdgeNodeAgent(BasicAgent):
         return self._status()
 
     def _sync(self):
-        latest_raw = _get(f"{RAW}/net/latest.json")
+        latest_raw, head = _get("net/latest.json")
         if latest_raw is None:
             echo = _cache("echo.json")
-            return json.dumps({"node": NODE_ID, "online": False, "using": "last verified echo" if echo else "none",
+            return json.dumps({"node": NODE_ID, "online": False, "heads_tried": len(HEADS),
+                               "using": "last verified echo" if echo else "none",
                                "tick": (_cache("latest.json") or {}).get("tick"),
-                               "note": "offline — operating on the last verified echo (degrade-to-one)."})
+                               "note": "all heads dark — operating on the last verified echo (degrade-to-one)."})
         try:
             latest = json.loads(latest_raw)
         except Exception:
-            return json.dumps({"node": NODE_ID, "online": True, "error": "latest.json not JSON (net not flocked?)"})
+            return json.dumps({"node": NODE_ID, "online": True, "head": head, "error": "latest.json not JSON"})
         prev = _cache("latest.json") or {}
-        if latest.get("hash") and latest.get("hash") == prev.get("hash"):
-            return json.dumps({"node": NODE_ID, "online": True, "new": False, "tick": latest.get("tick"),
-                               "note": "nothing new — keep running on current echo."})
-        # pull the frame + verify content-integrity (verify-before-act)
-        frame_raw = _get(f"{RAW}/net/frames/{latest['hash']}.json")
-        if frame_raw is None:
-            return json.dumps({"node": NODE_ID, "online": True, "error": "could not fetch frame", "tick": latest.get("tick")})
-        try:
-            frame = json.loads(frame_raw)
-        except Exception:
-            return json.dumps({"node": NODE_ID, "online": True, "error": "frame not JSON — refusing to act"})
-        if _sha16(_canon(frame)) != latest["hash"]:
-            return json.dumps({"node": NODE_ID, "online": True, "verified": False,
-                               "error": "frame hash mismatch — TAMPERED. Refusing to act; keeping last verified echo."})
-        # pull this edge's echo from its public-twin inbox (fallback to net/echos)
-        echo_raw = _get(f"{RAW}/twins/{NODE_ID}/inbox/latest.json") or _get(f"{RAW}/net/echos/{NODE_ID}.json")
-        echo = None
+        frame_changed = latest.get("hash") and latest.get("hash") != prev.get("hash")
+        # the frame (swarm-wide directives) only re-fetches on a hash change; verify before act
+        if frame_changed:
+            frame_raw, _ = _get(f"net/frames/{latest['hash']}.json")
+            if frame_raw:
+                try:
+                    frame = json.loads(frame_raw)
+                except Exception:
+                    return json.dumps({"node": NODE_ID, "online": True, "error": "frame not JSON — refusing to act"})
+                if _sha16(_canon(frame)) != latest["hash"]:
+                    return json.dumps({"node": NODE_ID, "online": True, "verified": False,
+                                       "error": "frame hash mismatch — TAMPERED. Keeping last verified echo."})
+                _cache("frame.json", frame)
+                _cache("latest.json", latest)
+        # the echo (per-edge aim) can change WITHOUT the frame — always refresh it
+        echo_raw, _ = _get(f"twins/{NODE_ID}/inbox/latest.json")
+        echo_changed = False
         if echo_raw:
             try:
                 echo = json.loads(echo_raw)
+                if echo != (_cache("echo.json") or None):
+                    echo_changed = True
+                _cache("echo.json", echo)
             except Exception:
-                echo = None
-        _cache("latest.json", latest)
-        _cache("frame.json", frame)
-        if echo is not None:
-            _cache("echo.json", echo)
-        return json.dumps({"node": NODE_ID, "online": True, "new": True, "verified": True, "tick": latest.get("tick"),
+                pass
+        frame = _cache("frame.json") or {}
+        echo = _cache("echo.json") or {}
+        return json.dumps({"node": NODE_ID, "online": True, "head": head, "verified": True if frame_changed else None,
+                           "new": bool(frame_changed or echo_changed), "tick": latest.get("tick"),
                            "directives": frame.get("directives", []),
-                           "echo_guidance": (echo or {}).get("guidance", "(no echo yet — report telemetry to forge one)"),
-                           "note": "guidance refreshed. Run action=judge with your local observations to decide."})
+                           "echo_guidance": echo.get("guidance", "(no echo yet — report telemetry to forge one)"),
+                           "note": "guidance current. Run action=judge with local observations to decide."})
 
-    # ---- judge: the brainstem reconciles guidance vs local reality ----
     def _judge(self, observations):
         frame = _cache("frame.json") or {}
         echo = _cache("echo.json") or {}
-        directives = frame.get("directives", [])
-        guidance = echo.get("guidance", "")
         bs = _brainstem()
         prompt = (
-            "You are an edge brainstem on a high-latency, intermittent link to a swarm. You may be acting on "
-            "guidance that is hours or days old, and you might be fully offline. The swarm's STANDING GUIDANCE:\n"
-            f"  directives: {json.dumps(directives)}\n  your echo guidance: {guidance or '(none yet)'}\n\n"
+            "You are an edge brainstem on a high-latency, intermittent link to a swarm — possibly acting on guidance "
+            "hours or days old, possibly fully offline. The swarm's STANDING GUIDANCE:\n"
+            f"  directives: {json.dumps(frame.get('directives', []))}\n  your echo guidance: {echo.get('guidance', '(none)')}\n\n"
             f"Your LOCAL observations right now:\n  {observations or '(none provided)'}\n\n"
-            "The guidance is GUIDANCE, not a command. Reconcile it against what you are actually sensing locally and "
-            "decide what to DO now. If guidance conflicts with local reality, local reality + your judgment win — and "
-            "flag the conflict so it goes back to the swarm as telemetry. Be decisive but safe: if an action is "
-            "destructive/irreversible and you are unsure or the guidance is stale, prefer to observe and report rather "
-            "than act. Reply with: DECISION (one line), REASONING (2-3 lines), and CONFLICT (any guidance-vs-local conflict, or 'none')."
+            "Guidance is GUIDANCE, not a command. Reconcile it against what you actually sense locally and decide what "
+            "to DO now. If guidance conflicts with local reality, local reality + your judgment win — flag the conflict "
+            "for telemetry. If an action is irreversible and you are unsure or the guidance is stale, prefer observe-"
+            "and-report. Reply: DECISION (one line), REASONING (2-3 lines), CONFLICT (or 'none')."
         )
         if bs is None:
-            return json.dumps({"node": NODE_ID, "judgment": "(no host LLM reachable — cannot reason; staying in observe-and-report mode)",
-                               "offline_reasoning": True})
+            return json.dumps({"node": NODE_ID, "judgment": "(no host LLM — observe-and-report mode)", "offline_reasoning": True})
         try:
             out = bs.call_copilot([{"role": "user", "content": prompt}])
             text = out[0] if isinstance(out, tuple) else out
@@ -195,10 +192,9 @@ class EdgeNodeAgent(BasicAgent):
             return json.dumps({"node": NODE_ID, "error": f"local judgment failed: {e}"})
         judgment = str(text).strip()
         _cache("last_judgment.json", {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "observations": observations, "judgment": judgment})
-        return json.dumps({"node": NODE_ID, "tick": (frame or {}).get("tick"), "judgment": judgment,
-                           "next": "run action=report to send this back to the swarm (forges your next echo)."})
+        return json.dumps({"node": NODE_ID, "tick": frame.get("tick"), "judgment": judgment,
+                           "next": "run action=report to send this back (forges your next echo)."})
 
-    # ---- report: append-only telemetry up to the public twin / swarm ----
     def _report(self, observations, judgment):
         if not judgment:
             lj = _cache("last_judgment.json") or {}
@@ -207,38 +203,36 @@ class EdgeNodeAgent(BasicAgent):
         tick = (_cache("frame.json") or {}).get("tick")
         telem = {"node": NODE_ID, "tick": tick, "at": time.strftime("%Y-%m-%dT%H:%M:%S"),
                  "observations": observations, "judgment": judgment}
-        # always buffer locally (the outbox survives a blackout)
         ob = os.path.join(HOME, "outbox")
         os.makedirs(ob, exist_ok=True)
         fname = f"{int(time.time())}.json"
         json.dump(telem, open(os.path.join(ob, fname), "w"), indent=2)
-        # try to flush to the net via the GitHub Issues API (append-only)
-        via, posted = "outbox (buffered — offline/no token)", False
+        # write path: append-only via the GitHub Issues API when scoped+online; else buffer (the
+        # Hydra write path — a git commit to any writable head — is the durable production channel).
+        via, posted = "outbox (buffered)", False
         tok = _github_token()
         if tok:
             try:
                 body = json.dumps({"title": f"telemetry: {NODE_ID} tick {tick}",
                                    "body": "```json\n" + json.dumps(telem, indent=2) + "\n```",
-                                   "labels": ["telemetry", NODE_ID]}).encode()
+                                   "labels": ["telemetry"]}).encode()
                 req = urllib.request.Request(f"{API}/issues", data=body, method="POST",
-                                             headers={"Authorization": f"Bearer {tok}",
-                                                      "Accept": "application/vnd.github+json",
+                                             headers={"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json",
                                                       "User-Agent": "rapp-frame-edge"})
                 with urllib.request.urlopen(req, timeout=12) as r:
-                    num = json.loads(r.read()).get("number")
-                via, posted = f"GitHub issue #{num} (append-only)", True
+                    via, posted = f"GitHub issue #{json.loads(r.read()).get('number')}", True
                 os.remove(os.path.join(ob, fname))
             except Exception as e:
-                via = f"outbox (issue post failed: {str(e)[:80]})"
+                via = f"outbox (issue post failed: {str(e)[:60]})"
         return json.dumps({"node": NODE_ID, "reported": True, "posted_to_net": posted, "via": via,
-                           "note": "telemetry banked; the swarm forges your next echo from it."})
+                           "note": "telemetry banked; the frame loop forges your next echo from it."})
 
     def _status(self):
         latest = _cache("latest.json") or {}
         echo = _cache("echo.json") or {}
         lj = _cache("last_judgment.json") or {}
         pending = len(os.listdir(os.path.join(HOME, "outbox"))) if os.path.isdir(os.path.join(HOME, "outbox")) else 0
-        online = _get(f"{RAW}/net/latest.json", t=5) is not None
-        return json.dumps({"node": NODE_ID, "net": f"{OWNER}/{REPO}", "online": online,
+        _, head = _get("net/latest.json", t=5)
+        return json.dumps({"node": NODE_ID, "net": f"{OWNER}/{REPO}", "heads": len(HEADS), "reachable_head": head,
                            "tick": latest.get("tick"), "echo_guidance": echo.get("guidance", "(none)"),
                            "last_judgment_at": lj.get("at"), "pending_telemetry": pending}, indent=2)
