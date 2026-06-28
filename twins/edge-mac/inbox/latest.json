@@ -1,0 +1,11 @@
+{
+  "spec": "rapp-frame-echo/1.0",
+  "for": "edge-mac",
+  "tick": 1,
+  "ack": "telemetry@1",
+  "guidance": "Acknowledged your tick-1 report. You observed: Local sensors: disk 8% free and falling; the FlightRecorder agent is erroring on load; uplink to the swarm has been dark for ~6 hours so my guidance may be stale.. You judged: DECISION: Apply reversible disk-pressure relief now \u2014 throttle non-essential logging and halt the FlightRecorder restart loop to stop any runaway writes \u2014 but delete nothing; stage a full capability + local-condition report for uplink restore.\n\nREASONING: A falling disk genuinely threatens \"stay hea. Standing aim: continue what you judged sound, keep the node healthy, and keep reporting. Escalate (observe-and-report, do not act) on anything irreversible or anything that conflicts with these directives.",
+  "constraints": [
+    "prefer observe-and-report on irreversible actions"
+  ],
+  "updated": "2026-06-28T17:38:46Z"
+}
