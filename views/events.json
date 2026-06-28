@@ -1,0 +1,39 @@
+{
+  "_meta": {
+    "event_count": 2,
+    "materialized_at": "2026-06-28T17:48:15Z"
+  },
+  "events": [
+    {
+      "data": {
+        "judgment": "DECISION: Apply reversible disk-pressure relief now \u2014 throttle non-essential logging and halt the FlightRecorder restart loop to stop any runaway writes \u2014 but delete nothing; stage a full capability + local-condition report for uplink restore.\n\nREASONING: A falling disk genuinely threatens \"stay healthy,\" so doing nothing isn't safe either \u2014 but with guidance ~6h stale I act only reversibly (throttle/quarantine, no deletions), since FlightRecorder's data is exactly the telemetry the swarm will want. Halting the likely writer buys time without irreversible loss; I hold my last echo on any actual cleanup until fresh guidance can verify it.\n\nCONFLICT: \"Stay healthy/useful\" pulls toward freeing disk immediately, while \"observe-and-report / no irreversible action when stale\" forbids deletion \u2014 I split the difference with reversible mitigation only and flag the disk trajectory upstream. Secondary conflict: FlightRecorder erroring degrades my \"verify every frame / hold last echo\" capability, so note that my local audit trail may be incomplete and verification confidence is reduced.",
+        "node": "edge-mac",
+        "observations": "Local sensors: disk 8% free and falling; the FlightRecorder agent is erroring on load; uplink to the swarm has been dark for ~6 hours so my guidance may be stale.",
+        "tick": 1
+      },
+      "frame": 1,
+      "id": "evt-2a008011b31b",
+      "node_id": "edge-mac",
+      "timestamp": "2026-06-28T17:48:14Z",
+      "type": "telemetry.reported"
+    },
+    {
+      "data": {
+        "ack": "telemetry@1#evt-2a008011b31b",
+        "constraints": [
+          "prefer observe-and-report on irreversible actions"
+        ],
+        "for": "edge-mac",
+        "guidance": "Acknowledged your tick-1 report. You observed: Local sensors: disk 8% free and falling; the FlightRecorder agent is erroring on load; uplink to the swarm has been dark for ~6 hours so my guidance may be stale.. You judged: DECISION: Apply reversible disk-pressure relief now \u2014 throttle non-essential logging and halt the FlightRecorder restart loop to stop any runaway writes \u2014 but delete nothing; stage a full capability + local-condition report for uplink restore.\n\nREASONING: A falling disk genuinely threatens \"stay healthy,\" so doing nothing isn't safe either \u2014 but with guidance ~6h stale I act only reversibly (throttle/quarantine, no d. Standing aim: continue what you judged sound, keep the node healthy, keep reporting. On anything irreversible or anything that conflicts with the directives \u2014 observe and report, do not act.",
+        "spec": "rapp-frame-echo/1.0",
+        "tick": 1,
+        "updated": "2026-06-28T17:48:15Z"
+      },
+      "frame": 1,
+      "id": "evt-5b6ac8917bb8",
+      "node_id": "edge-mac",
+      "timestamp": "2026-06-28T17:48:15Z",
+      "type": "echo.forged"
+    }
+  ]
+}

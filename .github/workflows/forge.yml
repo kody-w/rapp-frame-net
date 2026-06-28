@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 forge.py
+      - run: python3 scripts/frame_loop.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FRAME_NET: ${{ github.repository }}
