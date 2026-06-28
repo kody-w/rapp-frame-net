@@ -66,6 +66,35 @@ Taking the swarm down requires taking down **every head simultaneously AND every
 cached copy** — and any survivor re-seeds the rest. The data is small, static, content-addressed,
 and freely copyable. That is the cockroach property. **Cut a head, two grow.**
 
+## Compatible with the whole estate — public *and* private
+
+The hydra is not only for the frame-net; it is the survival fabric for **any** RAPP artifact. The
+same three rules (static data → many heads → trust the content-hash) carry the entire estate:
+
+| artifact | hydra-served as |
+|---|---|
+| a **brainstem** (the atom) | its `.egg` (organism cartridge), content-addressed |
+| a **Leviathan being** | its `.leviathan.egg`, content-addressed |
+| a **fleet** | its roster + frames/echos (rapp-frame), content-addressed |
+| an **agent.py** (cartridge) | the file itself, content-addressed (RAR / RAPP_Store already do this) |
+| a **cave** (public or private) | a hydra-mirrored repo of cubbies |
+| a **cubby** | one content-addressed entry in a cave |
+| a **front door** (public or private) | a static entry pointing at the twin behind it |
+
+**Public vs private — privacy is the *seal*, not the *location*.** A public artifact is hydra-served
+as plaintext static data. A **private** artifact (a private cave, a sealed cubby, a private front
+door) is hydra-served as a **[`rapp-sealed/1.0`](https://github.com/kody-w/rapp-sealed)** ciphertext
+envelope: the encrypted blob is public, mirrored, content-addressed, and unkillable — but only the
+key-holder can open it. So **privacy and survival coexist**: the ciphertext survives on every head;
+the plaintext is gated by a key, never by hiding the file. A private cave is a hydra of *sealed*
+cubbies; a public cave is a hydra of *plaintext* cubbies; both survive identically. A front door
+(public or private) is a hydra-served static entry that routes to the twin behind it — the twin
+animates on contact, the front door is always up.
+
+This makes the hydra one uniform survival fabric: **leviathans → fleets → beings → brainstems →
+agent.pys → caves → cubbies → front doors.** Everything in the estate can be many-headed and
+unkillable; private things simply ride *sealed*.
+
 ## Composition
 
 - The transport under **[rapp-frame/1.0](SPEC.md)** — frames/echos are read over the hydra.
