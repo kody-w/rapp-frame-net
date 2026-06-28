@@ -13,12 +13,57 @@ import json
 import os
 import sys
 import tempfile
+import urllib.request
 from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from event_store import read_all_events, append_event, now_iso  # noqa: E402
 
 ROOT = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def _ingest_issues():
+    """Bridge: turn open telemetry Issues into append-only events, then close them.
+    The Issues API is a WRITE channel (fine — writes may use APIs); the READ path stays
+    pure static raw. An edge without a scoped token buffers + flushes via its twin instead."""
+    tok = os.environ.get("GITHUB_TOKEN")
+    repo = os.environ.get("FRAME_NET")
+    if not (tok and repo):
+        return 0
+    api = f"https://api.github.com/repos/{repo}"
+
+    def _api(path, method="GET", data=None):
+        req = urllib.request.Request(api + path, method=method,
+                                     data=(json.dumps(data).encode() if data else None),
+                                     headers={"Authorization": f"Bearer {tok}", "Accept": "application/vnd.github+json",
+                                              "User-Agent": "frame-loop"})
+        with urllib.request.urlopen(req, timeout=20) as r:
+            return json.loads(r.read())
+    try:
+        issues = _api("/issues?state=open&labels=telemetry&per_page=100")
+    except Exception:
+        return 0
+    n = 0
+    for iss in issues:
+        if "pull_request" in iss:
+            continue
+        body = iss.get("body", "") or ""
+        try:
+            t = json.loads(body.split("```json", 1)[1].split("```", 1)[0]) if "```json" in body else {"raw": body[:400]}
+        except Exception:
+            t = {"raw": body[:300]}
+        node = t.get("node")
+        if not node:
+            continue
+        append_event(ROOT, {"frame": t.get("tick") or 1, "type": "telemetry.reported", "node_id": node,
+                            "data": {"node": node, "tick": t.get("tick"), "observations": t.get("observations"),
+                                     "judgment": t.get("judgment"), "issue": iss["number"]}})
+        try:
+            _api(f"/issues/{iss['number']}", "PATCH", {"state": "closed", "labels": ["telemetry", "ingested"]})
+        except Exception:
+            pass
+        n += 1
+    return n
 
 
 def _write_atomic(p: Path, obj):
@@ -49,6 +94,7 @@ def _forge_guidance(t):
 
 
 def main():
+    ingested = _ingest_issues()
     events = read_all_events(ROOT)
     latest_telem, echo_ack = {}, {}
     for e in events:
@@ -87,7 +133,7 @@ def main():
                       {"node": n, "last_seen": te["timestamp"], "last_tick": te["data"].get("tick"), "status": "active"})
     _write_atomic(ROOT / "views" / "events.json",
                   {"_meta": {"materialized_at": now_iso(), "event_count": len(events)}, "events": events[-100:]})
-    print(f"[frame-loop] events={len(events)} forged={forged} nodes={sorted(latest_echo)}")
+    print(f"[frame-loop] ingested={ingested} events={len(events)} forged={forged} nodes={sorted(latest_echo)}")
 
 
 if __name__ == "__main__":
