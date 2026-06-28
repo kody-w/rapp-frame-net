@@ -1,11 +1,18 @@
 {
-  "spec": "rapp-frame-echo/1.0",
+  "spec": "rapp-frame/2.0",
+  "stream_id": "net:rapp-frame-net",
+  "frame_n": 1,
+  "utc": "2026-06-28T18:00:00Z",
+  "kind": "swarm.echo",
   "for": "edge-demo",
-  "tick": 1,
-  "ack": "genesis",
-  "guidance": "You are a new edge. Inventory your agents, report local conditions, stay healthy. No standing objective yet \u2014 observe and report so the swarm can forge your real aim.",
-  "constraints": [
-    "no irreversible actions until you have a verified non-genesis echo"
-  ],
-  "updated": "2026-06-28T17:33:14Z"
+  "ack": null,
+  "prev_hash": null,
+  "payload": {
+    "guidance": "You are a new edge. Inventory your agents, report local conditions, stay healthy. No standing objective yet \u2014 observe and report.",
+    "constraints": [
+      "prefer reversible actions",
+      "hold on unverifiable guidance"
+    ]
+  },
+  "hash": "3bff3a5d9a63342794fad36dd285f5536501585b1f075c02b75e45d04cb5a348"
 }

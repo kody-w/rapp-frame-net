@@ -97,7 +97,7 @@ unkillable; private things simply ride *sealed*.
 
 ## Composition
 
-- The transport under **[rapp-frame/1.0](SPEC.md)** — frames/echos are read over the hydra.
+- The transport under **[rapp-frame/2.0](SPEC.md)** — frames/echos are read over the hydra.
 - The survival layer under the Foundation's *"canonical public twin for everything"* — every spec
   and static-API can be hydra-served.
 - Routed by **[rapp-spine](https://github.com/kody-w/rapp-spine)** — situation: *"I must keep reading

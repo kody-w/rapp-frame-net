@@ -1,11 +1,17 @@
 {
-  "ack": "telemetry@1#evt-2a008011b31b",
-  "constraints": [
-    "prefer observe-and-report on irreversible actions"
-  ],
+  "spec": "rapp-frame/2.0",
+  "stream_id": "net:rapp-frame-net",
+  "frame_n": 1,
+  "utc": "2026-06-28T17:48:15Z",
+  "kind": "swarm.echo",
   "for": "edge-mac",
-  "guidance": "Acknowledged your tick-1 report. You observed: Local sensors: disk 8% free and falling; the FlightRecorder agent is erroring on load; uplink to the swarm has been dark for ~6 hours so my guidance may be stale.. You judged: DECISION: Apply reversible disk-pressure relief now \u2014 throttle non-essential logging and halt the FlightRecorder restart loop to stop any runaway writes \u2014 but delete nothing; stage a full capability + local-condition report for uplink restore.\n\nREASONING: A falling disk genuinely threatens \"stay healthy,\" so doing nothing isn't safe either \u2014 but with guidance ~6h stale I act only reversibly (throttle/quarantine, no d. Standing aim: continue what you judged sound, keep the node healthy, keep reporting. On anything irreversible or anything that conflicts with the directives \u2014 observe and report, do not act.",
-  "spec": "rapp-frame-echo/1.0",
-  "tick": 1,
-  "updated": "2026-06-28T17:48:15Z"
+  "ack": "telemetry@1#evt-2a008011b31b",
+  "prev_hash": null,
+  "payload": {
+    "guidance": "Acknowledged your tick-1 report. You observed: Local sensors: disk 8% free and falling; the FlightRecorder agent is erroring on load; uplink to the swarm has been dark for ~6 hours so my guidance may be stale.. You judged: DECISION: Apply reversible disk-pressure relief now \u2014 throttle non-essential logging and halt the FlightRecorder restart loop to stop any runaway writes \u2014 but delete nothing; stage a full capability + local-condition report for uplink restore.\n\nREASONING: A falling disk genuinely threatens \"stay healthy,\" so doing nothing isn't safe either \u2014 but with guidance ~6h stale I act only reversibly (throttle/quarantine, no d. Standing aim: continue what you judged sound, keep the node healthy, keep reporting. On anything irreversible or anything that conflicts with the directives \u2014 observe and report, do not act.",
+    "constraints": [
+      "prefer observe-and-report on irreversible actions"
+    ]
+  },
+  "hash": "0bb95c7289ea6004672179a3d45e7fc27da46ac8a5db722ac1e3c0890bef6728"
 }

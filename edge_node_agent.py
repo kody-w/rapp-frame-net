@@ -1,5 +1,5 @@
 """
-EdgeNode — turn this brainstem into an edge of the planetary frame-net (rapp-frame/1.0),
+EdgeNode — turn this brainstem into an edge of the planetary frame-net (rapp-frame/2.0),
 read over the HYDRA (rapp-hydra/1.0): the swarm's state is static data served from MANY
 heads (GitHub raw, jsDelivr, raw.githack, mirrors, IPFS…). The edge reads from whichever
 head is reachable; content is hash-verified, so any head — even a hostile mirror — is safe.
@@ -63,8 +63,24 @@ def _canon(d):
     return json.dumps({k: v for k, v in d.items() if k not in ("sig", "hash")}, sort_keys=True, separators=(",", ":"))
 
 
-def _sha16(s):
-    return hashlib.sha256(s.encode("utf-8") if isinstance(s, str) else s).hexdigest()[:16]
+def _sha(s):
+    return hashlib.sha256(s.encode("utf-8") if isinstance(s, str) else s).hexdigest()
+
+
+def _hash_ok(frame, want):
+    """rapp-frame/2.0 hash = full sha256(canonical(frame)). Also accept the legacy [:16] form (read every legacy form)."""
+    h = _sha(_canon(frame))
+    return want in (h, h[:16]) or (len(want) >= 8 and h.startswith(want))
+
+
+def _payload(d):
+    """2.0 nests body under `payload`; legacy 1.0 swarm frames were flat — read both."""
+    p = d.get("payload")
+    return p if isinstance(p, dict) else d
+
+
+def _frame_n(d):
+    return d.get("frame_n", d.get("tick"))
 
 
 def _cache(name, obj=None):
@@ -98,7 +114,7 @@ class EdgeNodeAgent(BasicAgent):
         self.metadata = {
             "name": self.name,
             "description": (
-                "Make this brainstem an edge of the planetary frame-net (rapp-frame/1.0), read over the Hydra "
+                "Make this brainstem an edge of the planetary frame-net (rapp-frame/2.0), read over the Hydra "
                 "(many static heads, hash-verified). Pull the swarm's frame + echo from whichever head is up, "
                 "reconcile it with LOCAL reality by your own reasoning, act, report telemetry append-only. Works "
                 "offline on the last verified echo. action=sync | judge (pass `observations`) | report | status."
@@ -127,7 +143,7 @@ class EdgeNodeAgent(BasicAgent):
             echo = _cache("echo.json")
             return json.dumps({"node": NODE_ID, "online": False, "heads_tried": len(HEADS),
                                "using": "last verified echo" if echo else "none",
-                               "tick": (_cache("latest.json") or {}).get("tick"),
+                               "frame_n": _frame_n(_cache("latest.json") or {}),
                                "note": "all heads dark — operating on the last verified echo (degrade-to-one)."})
         try:
             latest = json.loads(latest_raw)
@@ -143,7 +159,7 @@ class EdgeNodeAgent(BasicAgent):
                     frame = json.loads(frame_raw)
                 except Exception:
                     return json.dumps({"node": NODE_ID, "online": True, "error": "frame not JSON — refusing to act"})
-                if _sha16(_canon(frame)) != latest["hash"]:
+                if not _hash_ok(frame, latest["hash"]):
                     return json.dumps({"node": NODE_ID, "online": True, "verified": False,
                                        "error": "frame hash mismatch — TAMPERED. Keeping last verified echo."})
                 _cache("frame.json", frame)
@@ -162,9 +178,9 @@ class EdgeNodeAgent(BasicAgent):
         frame = _cache("frame.json") or {}
         echo = _cache("echo.json") or {}
         return json.dumps({"node": NODE_ID, "online": True, "head": head, "verified": True if frame_changed else None,
-                           "new": bool(frame_changed or echo_changed), "tick": latest.get("tick"),
-                           "directives": frame.get("directives", []),
-                           "echo_guidance": echo.get("guidance", "(no echo yet — report telemetry to forge one)"),
+                           "new": bool(frame_changed or echo_changed), "frame_n": _frame_n(latest),
+                           "kind": frame.get("kind"), "directives": _payload(frame).get("directives", []),
+                           "echo_guidance": _payload(echo).get("guidance", "(no echo yet — report telemetry to forge one)"),
                            "note": "guidance current. Run action=judge with local observations to decide."})
 
     def _judge(self, observations):
@@ -174,7 +190,7 @@ class EdgeNodeAgent(BasicAgent):
         prompt = (
             "You are an edge brainstem on a high-latency, intermittent link to a swarm — possibly acting on guidance "
             "hours or days old, possibly fully offline. The swarm's STANDING GUIDANCE:\n"
-            f"  directives: {json.dumps(frame.get('directives', []))}\n  your echo guidance: {echo.get('guidance', '(none)')}\n\n"
+            f"  directives: {json.dumps(_payload(frame).get('directives', []))}\n  your echo guidance: {_payload(echo).get('guidance', '(none)')}\n\n"
             f"Your LOCAL observations right now:\n  {observations or '(none provided)'}\n\n"
             "Guidance is GUIDANCE, not a command. Reconcile it against what you actually sense locally and decide what "
             "to DO now. If guidance conflicts with local reality, local reality + your judgment win — flag the conflict "
@@ -192,7 +208,7 @@ class EdgeNodeAgent(BasicAgent):
             return json.dumps({"node": NODE_ID, "error": f"local judgment failed: {e}"})
         judgment = str(text).strip()
         _cache("last_judgment.json", {"at": time.strftime("%Y-%m-%dT%H:%M:%S"), "observations": observations, "judgment": judgment})
-        return json.dumps({"node": NODE_ID, "tick": frame.get("tick"), "judgment": judgment,
+        return json.dumps({"node": NODE_ID, "frame_n": _frame_n(frame), "judgment": judgment,
                            "next": "run action=report to send this back (forges your next echo)."})
 
     def _report(self, observations, judgment):
@@ -200,9 +216,13 @@ class EdgeNodeAgent(BasicAgent):
             lj = _cache("last_judgment.json") or {}
             judgment = lj.get("judgment", "")
             observations = observations or lj.get("observations", "")
-        tick = (_cache("frame.json") or {}).get("tick")
-        telem = {"node": NODE_ID, "tick": tick, "at": time.strftime("%Y-%m-%dT%H:%M:%S"),
-                 "observations": observations, "judgment": judgment}
+        fn = _frame_n(_cache("frame.json") or {})
+        utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        # telemetry is itself a rapp-frame/2.0 frame (kind=swarm.telemetry) — content-addressed, reassimilable
+        telem = {"spec": "rapp-frame/2.0", "stream_id": f"net:{REPO}", "frame_n": fn, "utc": utc,
+                 "kind": "swarm.telemetry", "for": NODE_ID, "prev_hash": None,
+                 "payload": {"node": NODE_ID, "observations": observations, "judgment": judgment}}
+        telem["hash"] = _sha(_canon(telem))
         ob = os.path.join(HOME, "outbox")
         os.makedirs(ob, exist_ok=True)
         fname = f"{int(time.time())}.json"
@@ -213,7 +233,7 @@ class EdgeNodeAgent(BasicAgent):
         tok = _github_token()
         if tok:
             try:
-                body = json.dumps({"title": f"telemetry: {NODE_ID} tick {tick}",
+                body = json.dumps({"title": f"telemetry: {NODE_ID} frame_n {fn}",
                                    "body": "```json\n" + json.dumps(telem, indent=2) + "\n```",
                                    "labels": ["telemetry"]}).encode()
                 req = urllib.request.Request(f"{API}/issues", data=body, method="POST",
@@ -234,5 +254,5 @@ class EdgeNodeAgent(BasicAgent):
         pending = len(os.listdir(os.path.join(HOME, "outbox"))) if os.path.isdir(os.path.join(HOME, "outbox")) else 0
         _, head = _get("net/latest.json", t=5)
         return json.dumps({"node": NODE_ID, "net": f"{OWNER}/{REPO}", "heads": len(HEADS), "reachable_head": head,
-                           "tick": latest.get("tick"), "echo_guidance": echo.get("guidance", "(none)"),
+                           "frame_n": _frame_n(latest), "echo_guidance": _payload(echo).get("guidance", "(none)"),
                            "last_judgment_at": lj.get("at"), "pending_telemetry": pending}, indent=2)

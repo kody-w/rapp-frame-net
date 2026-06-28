@@ -1,0 +1,21 @@
+{
+  "spec": "rapp-frame/2.0",
+  "stream_id": "net:rapp-frame-net",
+  "frame_n": 1,
+  "utc": "2026-06-28T18:00:00Z",
+  "kind": "swarm.guidance",
+  "prev_hash": null,
+  "payload": {
+    "directives": [
+      "Report your capability inventory and local conditions.",
+      "Stay healthy and useful; prefer observe-and-report over irreversible action when guidance is stale.",
+      "Verify every frame before acting; if you cannot verify, hold your last echo."
+    ],
+    "world": {
+      "net": "rapp-frame-net",
+      "objective": "prove a planetary swarm of brainstems can act autonomously on append-only frames over GitHub",
+      "swarm_health": "nominal"
+    }
+  },
+  "hash": "740aa862e9dcc3d651f625355d638fb0a0a29caad35957e6dfc868216b06cb14"
+}

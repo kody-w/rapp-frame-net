@@ -1,8 +1,9 @@
 {
-  "spec": "rapp-frame/1.0",
-  "net": "rapp-frame-net",
-  "tick": 1,
-  "hash": "c6a2dbaf9fbf21c5",
-  "updated": "2026-06-28T17:33:14Z",
-  "frame": "net/frames/c6a2dbaf9fbf21c5.json"
+  "spec": "rapp-frame/2.0",
+  "stream_id": "net:rapp-frame-net",
+  "frame_n": 1,
+  "kind": "swarm.guidance",
+  "hash": "740aa862e9dcc3d651f625355d638fb0a0a29caad35957e6dfc868216b06cb14",
+  "utc": "2026-06-28T18:00:00Z",
+  "frame": "net/frames/740aa862e9dcc3d651f625355d638fb0a0a29caad35957e6dfc868216b06cb14.json"
 }

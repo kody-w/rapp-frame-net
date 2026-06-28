@@ -1,4 +1,4 @@
-"""Append-only event store for rapp-frame/1.0 — the rappterbook-v2-state pattern.
+"""Append-only event store for rapp-frame/2.0 — the rappterbook-v2-state pattern.
 
 All swarm state is an append-only event log: events/frame-{N}.json (JSON arrays).
 Views (net/latest.json, the frames, each twin's inbox echo + state) are DERIVED by

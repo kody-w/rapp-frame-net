@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-frame_loop.py — the central frame loop (forge + materialize) for rapp-frame/1.0.
+frame_loop.py — the central frame loop (forge + materialize) for rapp-frame/2.0.
 
 The rappterbook-v2-state pattern: replay the append-only event log, forge each edge's
 next echo from its latest telemetry (the Foundry, inverted), then MATERIALIZE the views
@@ -20,6 +20,13 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from event_store import read_all_events, append_event, now_iso  # noqa: E402
 
 ROOT = Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+NET = os.environ.get("FRAME_NET", "kody-w/rapp-frame-net").split("/")[-1]
+
+
+def _frame_hash(frame):
+    import hashlib
+    c = json.dumps({k: v for k, v in frame.items() if k not in ("sig", "hash")}, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(c.encode()).hexdigest()
 
 
 def _ingest_issues():
@@ -110,9 +117,11 @@ def main():
     for n, te in latest_telem.items():
         ack = f"telemetry@{te['data'].get('tick')}#{te['id']}"
         if echo_ack.get(n) != ack:
-            echo = {"spec": "rapp-frame-echo/1.0", "for": n, "tick": te["data"].get("tick"), "ack": ack,
-                    "guidance": _forge_guidance(te["data"]),
-                    "constraints": ["prefer observe-and-report on irreversible actions"], "updated": now_iso()}
+            echo = {"spec": "rapp-frame/2.0", "stream_id": f"net:{NET}", "frame_n": te["data"].get("tick") or 1,
+                    "utc": now_iso(), "kind": "swarm.echo", "for": n, "ack": ack, "prev_hash": None,
+                    "payload": {"guidance": _forge_guidance(te["data"]),
+                                "constraints": ["prefer observe-and-report on irreversible actions"]}}
+            echo["hash"] = _frame_hash(echo)
             append_event(ROOT, {"frame": te.get("frame", 1), "type": "echo.forged", "node_id": n, "data": echo})
             forged += 1
 
