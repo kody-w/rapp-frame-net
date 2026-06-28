@@ -1,0 +1,6 @@
+{
+  "scheme": "sha256-content-address/1.0",
+  "integrity": "every frame is content-addressed: sha256(canonical(frame))[:16] == latest.json.hash == filename. An edge recomputes this and refuses to act on a mismatch (verify-before-act).",
+  "authenticity": "v1.0 ships HMAC-SHA256 (closed nets) and a verify-before-act content root. PRODUCTION upgrades to Ed25519 / rapp-moment ECDSA P-256 so edges verify latest.json + frames with a PUBLIC key alone and cannot forge.",
+  "ed25519_pubkey": null
+}

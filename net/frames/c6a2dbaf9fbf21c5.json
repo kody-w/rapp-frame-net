@@ -1,0 +1,16 @@
+{
+  "spec": "rapp-frame/1.0",
+  "tick": 1,
+  "prev": null,
+  "updated": "2026-06-28T17:33:14Z",
+  "directives": [
+    "Report your capability inventory and local conditions.",
+    "Stay healthy and useful; prefer observe-and-report over irreversible action when guidance is stale.",
+    "Verify every frame before acting; if you cannot verify, hold your last echo."
+  ],
+  "world": {
+    "net": "rapp-frame-net",
+    "objective": "prove a planetary swarm of brainstems can act autonomously on append-only frames over GitHub",
+    "swarm_health": "nominal"
+  }
+}

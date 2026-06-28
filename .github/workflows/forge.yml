@@ -1,0 +1,16 @@
+name: frame-forge
+on:
+  schedule: [{ cron: "17 * * * *" }]   # hourly tick (off-minute to be a good fleet citizen)
+  issues: { types: [opened, labeled] }
+  workflow_dispatch:
+permissions: { contents: write, issues: write }
+concurrency: { group: forge, cancel-in-progress: false }
+jobs:
+  forge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 forge.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FRAME_NET: ${{ github.repository }}

@@ -1,0 +1,11 @@
+{
+  "spec": "rapp-frame-echo/1.0",
+  "for": "edge-demo",
+  "tick": 1,
+  "ack": "genesis",
+  "guidance": "You are a new edge. Inventory your agents, report local conditions, stay healthy. No standing objective yet \u2014 observe and report so the swarm can forge your real aim.",
+  "constraints": [
+    "no irreversible actions until you have a verified non-genesis echo"
+  ],
+  "updated": "2026-06-28T17:33:14Z"
+}
