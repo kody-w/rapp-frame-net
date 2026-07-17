@@ -1,0 +1,82 @@
+{
+  "document_type": "owner-external-decommission-inputs",
+  "repository": "kody-w/rapp-frame-net",
+  "acceptance_status": "BLOCKED_NULL_OWNER_INPUTS",
+  "decommission_accepted": false,
+  "instructions": "Replace null only through owner-reviewed evidence. Record public-safe references/timestamps, never credentials, token values, private keys, or private operational data.",
+  "owner_inputs": {
+    "legacy_token_revocation_evidence": null,
+    "legacy_agent_process_stop_evidence": null,
+    "legacy_scheduler_stop_evidence": null,
+    "issues_write_plane_disabled_evidence": null,
+    "repository_metadata_retired_evidence": null,
+    "mirror_and_cdn_advertisement_retirement_evidence": null,
+    "cdn_cache_invalidation_evidence": null,
+    "reviewed_consumer_migration_target": null,
+    "consumer_migration_acceptance_evidence": null,
+    "owner_decommission_acceptance": null
+  },
+  "external_acceptance_criteria": [
+    {
+      "id": "EXT-01",
+      "owner_input": "legacy_token_revocation_evidence",
+      "requirement": "All credentials usable by legacy agents or schedulers are revoked."
+    },
+    {
+      "id": "EXT-02",
+      "owner_input": "legacy_agent_process_stop_evidence",
+      "requirement": "Every known installed legacy edge/forge process is stopped and removed from startup."
+    },
+    {
+      "id": "EXT-03",
+      "owner_input": "legacy_scheduler_stop_evidence",
+      "requirement": "External cron, Actions copies, service timers, and other schedulers are disabled."
+    },
+    {
+      "id": "EXT-04",
+      "owner_input": "issues_write_plane_disabled_evidence",
+      "requirement": "Repository Issues writes are disabled/restricted or the repository is archived, and legacy telemetry is drained or closed under owner policy."
+    },
+    {
+      "id": "EXT-05",
+      "owner_input": "repository_metadata_retired_evidence",
+      "requirement": "Description, homepage, topics, and other repository metadata no longer advertise a live wire."
+    },
+    {
+      "id": "EXT-06",
+      "owner_input": "mirror_and_cdn_advertisement_retirement_evidence",
+      "requirement": "Known mirrors and public CDN/head advertisements are retired."
+    },
+    {
+      "id": "EXT-07",
+      "owner_input": "cdn_cache_invalidation_evidence",
+      "requirement": "Cached mutable head responses are invalidated where supported, with expiry recorded elsewhere."
+    },
+    {
+      "id": "EXT-08",
+      "owner_input": "reviewed_consumer_migration_target",
+      "requirement": "The owner names the reviewed replacement path, or explicitly records consumer removal."
+    },
+    {
+      "id": "EXT-09",
+      "owner_input": "consumer_migration_acceptance_evidence",
+      "requirement": "Every known consumer is migrated or removed and the result is acceptance-tested."
+    },
+    {
+      "id": "EXT-10",
+      "owner_input": "owner_decommission_acceptance",
+      "requirement": "The owner records final acceptance only after EXT-01 through EXT-09 are satisfied."
+    }
+  ],
+  "local_acceptance": {
+    "command": "python3 -m unittest -v tests/test_retirement.py",
+    "tests": [
+      "pinned baseline commit and independent immutable blob/byte/manifest comparison",
+      "blob plus manifest co-tamper rejection",
+      "exact tracked-path classification and unclassified-addition rejection",
+      "mutable net/latest.json absent now but preserved at the baseline ref",
+      "legacy Python and workflow entry points fail closed",
+      "all owner/external inputs are null and cannot yield acceptance"
+    ]
+  }
+}

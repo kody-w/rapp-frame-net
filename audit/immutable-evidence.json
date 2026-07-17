@@ -11,7 +11,17 @@
   "hash_scope": "SHA-256 over exact file octets",
   "trust_status": "UNVERIFIED",
   "active_authority": false,
-  "policy": "Preserve every listed path byte-for-byte; never repair, reparent, rehash, resign, regenerate, or delete it.",
+  "policy": "Preserve every artifact path byte-for-byte in the current tree; never repair, reparent, rehash, resign, regenerate, or delete it. Preserve retired mutable live paths at the pinned historical ref.",
+  "retired_mutable_live_paths": [
+    {
+      "path": "net/latest.json",
+      "baseline_blob_sha1": "0d135be578b9530b36033d134f6f8d18cd790ba7",
+      "sha256": "89b7e44d40e9e3de625be27a069600af4c94f974122e4c609230ec0e98cee4e7",
+      "historical_ref": "a78a9c2aba06f9e788d735341b9ff7d2cace3189:net/latest.json",
+      "current_disposition": "absent-current-tree",
+      "classification": "legacy mutable head pointer; historical evidence but not an immutable content-addressed artifact"
+    }
+  ],
   "artifacts": [
     {
       "path": "events/frame-1.json",
@@ -30,12 +40,6 @@
       "baseline_blob_sha1": "7db10e6e92cbf04878d9018281ca88446b3bbf4a",
       "sha256": "e50ffed130aa8c1ba1a8dca3430bae01b68a304f35228cfb8fab2716bdef69da",
       "classification": "legacy content-addressed guidance evidence"
-    },
-    {
-      "path": "net/latest.json",
-      "baseline_blob_sha1": "0d135be578b9530b36033d134f6f8d18cd790ba7",
-      "sha256": "89b7e44d40e9e3de625be27a069600af4c94f974122e4c609230ec0e98cee4e7",
-      "classification": "legacy historical pointer; not a trusted head"
     },
     {
       "path": "twins/edge-demo/inbox/latest.json",

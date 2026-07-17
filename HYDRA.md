@@ -18,6 +18,14 @@ resource risk, and defaulted to unpinned moving `main` URLs. Those network paths
 have been removed. No mirror, CDN, IPFS gateway, or branch URL named in
 repository history is currently trusted by this repository.
 
+The mutable current head path `net/latest.json` is absent from this tree. Its
+historical bytes remain at baseline
+`a78a9c2aba06f9e788d735341b9ff7d2cace3189`; that ref must not be rewritten.
+Previously deployed agents and cached/mirrored copies are outside this
+checkout. The owner must stop those processes, retire advertisements and
+mirrors, and invalidate caches before operational decommission can be
+accepted. Those attestations are currently `null`.
+
 Historical data remains byte-for-byte evidence and **UNVERIFIED**. See
 [AUTHORITY.md](AUTHORITY.md) and
 [`audit/immutable-evidence.json`](audit/immutable-evidence.json).

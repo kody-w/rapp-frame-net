@@ -15,8 +15,10 @@ The local former `rapp-frame/2.0` specification is retired. It and older
 
 ## Status
 
-**Retired; read-only historical evidence; no active producer, consumer,
-launcher, workflow, mirror, or wire adapter.**
+**The current checkout is retired and fail-closed: it has no active producer,
+consumer, launcher, workflow job, head pointer, mirror client, or wire
+adapter. Operational decommission of previously deployed copies is not yet
+owner-attested.**
 
 No target-owned RAPP/1 adapter was created. A swarm frame must be signed, and
 signature verification depends on the authenticated, monotonic §13 registry.
@@ -77,22 +79,70 @@ The audit checked the following normative floor:
 No active code follows a moving branch, accepts a caller-provided URL, performs
 network I/O, reads a secret, writes an Issue, or mutates repository state.
 
+## Current live-path containment
+
+- The mutable legacy pointer `net/latest.json` is deleted from the current
+  tree. A merged raw/CDN request eventually returns not-found rather than a
+  guidance head. The exact prior blob remains at baseline
+  `a78a9c2aba06f9e788d735341b9ff7d2cace3189:net/latest.json`.
+- The three former Python entry points are refusal tombstones.
+- The workflow has no permissions and an unconditionally false job.
+- Immutable event/frame/twin/key/view blobs remain in place as evidence. They
+  are not edited merely because their historical paths resemble APIs.
+
+Deleting the mutable pointer cannot stop an old agent already running on a
+cached echo; that behavior was an explicit legacy feature. CDN caches, forks,
+mirrors, installed files, local schedulers, credentials, repository settings,
+and third-party consumers are also outside this Git tree. They are owner or
+operator decommission responsibilities, not facts this commit may invent.
+
 ## Immutable evidence
 
 The byte-level inventory is
 [`audit/immutable-evidence.json`](audit/immutable-evidence.json). It pins the
-baseline commit, Git blob IDs, and SHA-256 of every committed event, frame,
-pointer, twin state/inbox/identity, key record, and materialized view. Tests
-recompute every pin and fail on any byte change.
+baseline commit, Git blob IDs, and SHA-256 of every immutable event, frame,
+twin state/inbox/identity, key record, and materialized view. Tests resolve the
+hardcoded baseline independently, read each baseline blob, compare its bytes
+and IDs with both the manifest and current bytes, and fail if a blob and
+manifest are changed together.
 
 These locations are evidence, not APIs:
 
 - `events/frame-1.json`
 - `net/frames/`
-- `net/latest.json`
 - `twins/`
 - `keys/verify.json`
 - `views/events.json`
+
+The former mutable `net/latest.json` pointer is retained only through the
+pinned historical commit and is listed separately in both audit inventories.
+
+## Operational decommission acceptance — currently blocked
+
+The exact public-safe input contract is
+[`audit/owner-decommission-inputs.json`](audit/owner-decommission-inputs.json).
+All inputs are intentionally `null`; `null` never means success. An owner or
+responsible external operator must supply reviewed evidence for every gate:
+
+1. revoke every legacy GitHub/deploy/personal token and credential;
+2. stop installed legacy agent processes and disable every external scheduler;
+3. disable or otherwise close the repository Issues write plane and drain or
+   close legacy telemetry submissions as policy permits;
+4. mark repository description/homepage/topics as retired and remove live
+   endpoint claims;
+5. retire live mirrors and CDN advertisements and invalidate cached
+   `net/latest.json` where the provider supports it;
+6. migrate every known consumer to an explicitly named, reviewed path (or
+   record removal), then provide migration acceptance evidence; and
+7. record final owner decommission acceptance.
+
+No token value, private key, credential, or private operational detail belongs
+in the input file—only public-safe evidence references and timestamps.
+
+Local acceptance tests prove checkout containment, baseline preservation,
+co-tamper rejection, exact path classification, and the null-input block. They
+cannot prove external actions. Merge readiness for code and operational
+decommission acceptance are distinct.
 
 ## Estate-owner actions required for any future activation
 

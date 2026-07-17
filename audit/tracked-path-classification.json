@@ -1,0 +1,154 @@
+{
+  "document_type": "exact-tracked-path-classification",
+  "baseline_commit": "a78a9c2aba06f9e788d735341b9ff7d2cace3189",
+  "policy": "Every current tracked path must appear exactly once. A new tracked path without a reviewed classification is refused.",
+  "paths": [
+    {
+      "path": ".github/workflows/forge.yml",
+      "origin": "baseline",
+      "classification": "retired-workflow",
+      "rationale": "Visible but unconditionally skipped workflow tombstone with no permissions."
+    },
+    {
+      "path": ".gitignore",
+      "origin": "baseline",
+      "classification": "repository-support",
+      "rationale": "Ignore rules only."
+    },
+    {
+      "path": "AUTHORITY.md",
+      "origin": "added",
+      "classification": "current-authority-status",
+      "rationale": "Pinned authority, retirement boundary, blockers, and owner actions."
+    },
+    {
+      "path": "HYDRA.md",
+      "origin": "baseline",
+      "classification": "retired-documentation",
+      "rationale": "Historical transport note; no live endpoint authority."
+    },
+    {
+      "path": "LICENSE",
+      "origin": "baseline",
+      "classification": "license",
+      "rationale": "MIT license."
+    },
+    {
+      "path": "README.md",
+      "origin": "baseline",
+      "classification": "current-retirement-status",
+      "rationale": "Public entry point for fail-closed status."
+    },
+    {
+      "path": "SPEC.md",
+      "origin": "baseline",
+      "classification": "retired-documentation",
+      "rationale": "Non-normative tombstone for the obsolete local specification."
+    },
+    {
+      "path": "audit/immutable-evidence.json",
+      "origin": "added",
+      "classification": "immutable-evidence-manifest",
+      "rationale": "Baseline Git blob and exact-byte pins."
+    },
+    {
+      "path": "audit/owner-decommission-inputs.json",
+      "origin": "added",
+      "classification": "owner-external-acceptance-gate",
+      "rationale": "Public-safe null inputs and external acceptance criteria."
+    },
+    {
+      "path": "audit/tracked-path-classification.json",
+      "origin": "added",
+      "classification": "tracked-path-inventory",
+      "rationale": "Exact inventory that rejects unclassified additions."
+    },
+    {
+      "path": "edge_node_agent.py",
+      "origin": "baseline",
+      "classification": "retired-runtime-tombstone",
+      "rationale": "Offline refusal entry point."
+    },
+    {
+      "path": "events/frame-1.json",
+      "origin": "baseline",
+      "classification": "immutable-unverified-evidence",
+      "rationale": "Committed legacy event log; exact bytes protected."
+    },
+    {
+      "path": "keys/verify.json",
+      "origin": "baseline",
+      "classification": "immutable-unverified-evidence",
+      "rationale": "Committed legacy trust metadata; exact bytes protected and non-authoritative."
+    },
+    {
+      "path": "net/frames/740aa862e9dcc3d651f625355d638fb0a0a29caad35957e6dfc868216b06cb14.json",
+      "origin": "baseline",
+      "classification": "immutable-unverified-evidence",
+      "rationale": "Content-addressed legacy guidance; exact bytes protected."
+    },
+    {
+      "path": "scripts/event_store.py",
+      "origin": "baseline",
+      "classification": "retired-runtime-tombstone",
+      "rationale": "Offline refusal entry point."
+    },
+    {
+      "path": "scripts/frame_loop.py",
+      "origin": "baseline",
+      "classification": "retired-runtime-tombstone",
+      "rationale": "Offline refusal entry point."
+    },
+    {
+      "path": "tests/test_retirement.py",
+      "origin": "added",
+      "classification": "offline-acceptance-tests",
+      "rationale": "Executable immutability, classification, and retirement gates."
+    },
+    {
+      "path": "twins/edge-demo/inbox/latest.json",
+      "origin": "baseline",
+      "classification": "immutable-unverified-evidence",
+      "rationale": "Committed content-addressed inbox evidence; exact bytes protected."
+    },
+    {
+      "path": "twins/edge-demo/state.json",
+      "origin": "baseline",
+      "classification": "immutable-unverified-evidence",
+      "rationale": "Committed state evidence; exact bytes protected."
+    },
+    {
+      "path": "twins/edge-demo/twin.json",
+      "origin": "baseline",
+      "classification": "immutable-unverified-evidence",
+      "rationale": "Committed legacy identity evidence; exact bytes protected."
+    },
+    {
+      "path": "twins/edge-mac/inbox/latest.json",
+      "origin": "baseline",
+      "classification": "immutable-unverified-evidence",
+      "rationale": "Committed content-addressed inbox evidence; exact bytes protected."
+    },
+    {
+      "path": "twins/edge-mac/state.json",
+      "origin": "baseline",
+      "classification": "immutable-unverified-evidence",
+      "rationale": "Committed state evidence; exact bytes protected."
+    },
+    {
+      "path": "views/events.json",
+      "origin": "baseline",
+      "classification": "immutable-unverified-evidence",
+      "rationale": "Committed materialized event evidence; exact bytes protected."
+    }
+  ],
+  "retired_baseline_paths": [
+    {
+      "path": "net/latest.json",
+      "baseline_blob_sha1": "0d135be578b9530b36033d134f6f8d18cd790ba7",
+      "sha256": "89b7e44d40e9e3de625be27a069600af4c94f974122e4c609230ec0e98cee4e7",
+      "current_disposition": "absent-current-tree",
+      "rationale": "Mutable legacy head pointer removed so the current polling path is non-actionable; bytes remain at the pinned baseline ref."
+    }
+  ]
+}

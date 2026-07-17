@@ -17,12 +17,16 @@ security findings, and owner-only recovery actions.
 
 ## What remains
 
-Committed JSON under `events/`, `net/`, `twins/`, `views/`, and
+Committed JSON under `events/`, `net/frames/`, `twins/`, `views/`, and
 `keys/verify.json` is preserved byte-for-byte as historical evidence. It uses
 obsolete envelopes and trust claims. It is **UNVERIFIED**, is not active
 authority, and must not be repaired, reparented, rehashed, resigned,
 regenerated, or deleted. Exact baseline blob and SHA-256 pins are in
 [`audit/immutable-evidence.json`](audit/immutable-evidence.json).
+
+The mutable legacy head `net/latest.json` was removed from the current tree so
+the former polling URL is non-actionable after merge. Its exact bytes remain
+available at the pinned baseline commit; no historical ref was rewritten.
 
 ## Fail-closed paths
 
@@ -33,5 +37,17 @@ regenerated, or deleted. Exact baseline blob and SHA-256 pins are in
 - `.github/workflows/forge.yml` has no permissions and its only job is
   unconditionally skipped. It has no schedule, Issues trigger, write grant, or
   third-party action.
+
+Source containment cannot stop already-deployed copies. Token revocation,
+agent/process and scheduler shutdown, Issues-plane closure, repository
+metadata and mirror/CDN retirement, cache invalidation, and consumer migration
+are explicit owner/external gates in
+[`audit/owner-decommission-inputs.json`](audit/owner-decommission-inputs.json).
+Every owner input is deliberately `null`; operational decommission acceptance
+is therefore **BLOCKED**, not assumed.
+
+Every tracked path is classified in
+[`audit/tracked-path-classification.json`](audit/tracked-path-classification.json);
+tests reject unclassified additions.
 
 There is no installer in this repository, and this retirement adds none.
