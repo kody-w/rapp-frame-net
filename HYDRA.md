@@ -1,108 +1,23 @@
-# rapp-hydra/1.0 — the many-headed, unkillable medium
+# Historical note: the retired “Hydra” transport
 
-The protocol that makes the RAPP medium impossible to shut down. The swarm's entire state is
-**static data in a git repo**, mirrored to **many independent heads** (CDNs, git hosts, IPFS,
-forks). An edge reads from whichever head is reachable, and **trusts the data, not the host** —
-every artifact is content-addressed, so a hostile or stale mirror can't tamper. Cut one head,
-another serves it. Fork it, a new head grows. **A hydra.**
+This file formerly described a multi-head `rapp-frame/2.0` transport that read
+from moving `main` branches and user-supplied URLs. That design is historical,
+not active authority.
 
-> Proven live: the same frame `c6a2dbaf9fbf21c5` served *identically* from `raw.githubusercontent.com`,
-> `cdn.jsdelivr.net`, and `raw.githack.com` — three independent CDNs over one repo, today, zero setup.
+RAPP/1 does not make an arbitrary mirror or a content hash a trust root:
 
-## Principles
+- history is safe only given a trusted, authenticated head;
+- consumers must enforce monotonic heads and fail closed on forks;
+- swarm frames require signatures;
+- kinds, genesis, keys, revocations, and owner tenure resolve through the
+  authenticated, rollback-protected §13 registry; and
+- mirrors must be provenance-stamped and subordinate to the canonical source.
 
-1. **The medium is data, not a service.** The whole state is files in a repo (append-only
-   `events/` + materialized static `views/`). Reading requires no server and **no API you don't
-   own on the critical path** — only static files over a CDN.
-2. **Many heads, one body.** The same repo is served from N interchangeable heads. Each is a full copy.
-3. **Trust the content, not the head.** Every artifact is content-addressed (`sha256`). The edge
-   verifies the hash, so **any** head is safe to read from — even one you don't control.
-4. **Read from any head; fail over.** Try heads in order until one answers. Losing the primary
-   (takedown, geoblock, outage, account ban) costs nothing — the next serves identical, verified data.
-5. **Re-seed from any copy.** The repo *is* the whole medium; anyone can clone/fork/mirror it to
-   mint a new head. Cut every head and one surviving fork regrows the swarm.
-6. **GitHub is a head, not the home.** We use it as the convenient primary, but the protocol is
-   host-agnostic — point `FRAME_HEADS` at anything serving the repo's raw files over HTTPS.
+The retired edge accepted arbitrary `FRAME_HEADS`, creating an SSRF/local
+resource risk, and defaulted to unpinned moving `main` URLs. Those network paths
+have been removed. No mirror, CDN, IPFS gateway, or branch URL named in
+repository history is currently trusted by this repository.
 
-## The head list
-
-An edge carries an ordered list of head base-URLs (repo-relative paths are appended):
-
-```
-https://raw.githubusercontent.com/<owner>/<repo>/<ref>        GitHub raw            (live)
-https://cdn.jsdelivr.net/gh/<owner>/<repo>@<ref>              jsDelivr CDN          (live, independent)
-https://raw.githack.com/<owner>/<repo>/<ref>                  raw.githack CDN       (live)
-https://<gitlab|codeberg host>/<owner>/<repo>/-/raw/<ref>     non-GitHub git mirror
-https://<ipfs-gateway>/ipns/<key>                             IPFS (natively content-addressed)
-… + any FRAME_HEADS you add (self-host, corporate mirror, torrent-backed gateway)
-```
-
-The minimum viable hydra is **one repo + the free CDN heads** — already live above. More heads = more survival.
-
-## Read
-
-`GET <head>/<path>` for each head in order until one returns; **verify the content hash**; the
-first verified copy wins. Heads may be stale — verify against `net/latest.json`'s hash and prefer
-the highest `tick` if heads disagree. **A stale head is a slow head, never a wrong one.**
-
-## Write (append-only, host-agnostic)
-
-The write path is a **git commit to any writable head**, never a proprietary API. A node with a
-scoped deploy key commits an event to a head; head-to-head mirroring (`git push --mirror` /
-multi-remote / a sync job / IPFS pin) propagates it. Reads need no auth; a write to any one head
-eventually reaches all. An edge without write access buffers locally and flushes through its
-public twin (see [rapp-frame SPEC §public twin](SPEC.md)).
-
-## Mirroring (growing heads)
-
-- **jsDelivr / raw.githack / statically.io** — zero-setup CDN heads over any GitHub repo (already live).
-- A scheduled `git push --mirror` to **GitLab / Codeberg / a self-host**.
-- **IPFS** — pin the repo, publish an IPNS name as a content-addressed head.
-- Torrent / IPFS make the data **re-seedable by anyone**.
-
-## Why it can't be shut down
-
-Taking the swarm down requires taking down **every head simultaneously AND every fork AND every
-cached copy** — and any survivor re-seeds the rest. The data is small, static, content-addressed,
-and freely copyable. That is the cockroach property. **Cut a head, two grow.**
-
-## Compatible with the whole estate — public *and* private
-
-The hydra is not only for the frame-net; it is the survival fabric for **any** RAPP artifact. The
-same three rules (static data → many heads → trust the content-hash) carry the entire estate:
-
-| artifact | hydra-served as |
-|---|---|
-| a **brainstem** (the atom) | its `.egg` (organism cartridge), content-addressed |
-| a **Leviathan being** | its `.leviathan.egg`, content-addressed |
-| a **fleet** | its roster + frames/echos (rapp-frame), content-addressed |
-| an **agent.py** (cartridge) | the file itself, content-addressed (RAR / RAPP_Store already do this) |
-| a **cave** (public or private) | a hydra-mirrored repo of cubbies |
-| a **cubby** | one content-addressed entry in a cave |
-| a **front door** (public or private) | a static entry pointing at the twin behind it |
-
-**Public vs private — privacy is the *seal*, not the *location*.** A public artifact is hydra-served
-as plaintext static data. A **private** artifact (a private cave, a sealed cubby, a private front
-door) is hydra-served as a **[`rapp-sealed/1.0`](https://github.com/kody-w/rapp-sealed)** ciphertext
-envelope: the encrypted blob is public, mirrored, content-addressed, and unkillable — but only the
-key-holder can open it. So **privacy and survival coexist**: the ciphertext survives on every head;
-the plaintext is gated by a key, never by hiding the file. A private cave is a hydra of *sealed*
-cubbies; a public cave is a hydra of *plaintext* cubbies; both survive identically. A front door
-(public or private) is a hydra-served static entry that routes to the twin behind it — the twin
-animates on contact, the front door is always up.
-
-This makes the hydra one uniform survival fabric: **leviathans → fleets → beings → brainstems →
-agent.pys → caves → cubbies → front doors.** Everything in the estate can be many-headed and
-unkillable; private things simply ride *sealed*.
-
-## Composition
-
-- The transport under **[rapp-frame/2.0](SPEC.md)** — frames/echos are read over the hydra.
-- The survival layer under the Foundation's *"canonical public twin for everything"* — every spec
-  and static-API can be hydra-served.
-- Routed by **[rapp-spine](https://github.com/kody-w/rapp-spine)** — situation: *"I must keep reading
-  the swarm even if a host is taken down."*
-
----
-
-*Cut one head, two grow. The medium is the data; the data is everywhere.*
+Historical data remains byte-for-byte evidence and **UNVERIFIED**. See
+[AUTHORITY.md](AUTHORITY.md) and
+[`audit/immutable-evidence.json`](audit/immutable-evidence.json).

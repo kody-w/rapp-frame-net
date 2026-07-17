@@ -1,0 +1,77 @@
+{
+  "document_type": "immutable-evidence-inventory",
+  "repository": "kody-w/rapp-frame-net",
+  "baseline_commit": "a78a9c2aba06f9e788d735341b9ff7d2cace3189",
+  "normative_authority": {
+    "repository": "kody-w/rapp-1",
+    "commit": "6723c7add2aed36bb68992fc71a56b0a4bd5ad81",
+    "path": "SPEC.md",
+    "sha256": "6d06daba65d7c045716f3d6e95db8401ab58e727820e4114466d847f62cae49b"
+  },
+  "hash_scope": "SHA-256 over exact file octets",
+  "trust_status": "UNVERIFIED",
+  "active_authority": false,
+  "policy": "Preserve every listed path byte-for-byte; never repair, reparent, rehash, resign, regenerate, or delete it.",
+  "artifacts": [
+    {
+      "path": "events/frame-1.json",
+      "baseline_blob_sha1": "b4fcefae3579bb04c00540c6002cd56f76f1d053",
+      "sha256": "809e00ce7640b30bedafc82f8441cebe0d55e3ec5bc373c8639018c8b1c95add",
+      "classification": "legacy append-only event evidence"
+    },
+    {
+      "path": "keys/verify.json",
+      "baseline_blob_sha1": "8f0677b9f4820b387dff4dc9f70e545103698e2a",
+      "sha256": "b564167c871f9ca6a0d73b505203137a452ea321379fcae100a8ae5dafefb94c",
+      "classification": "legacy trust metadata; not an authenticated registry"
+    },
+    {
+      "path": "net/frames/740aa862e9dcc3d651f625355d638fb0a0a29caad35957e6dfc868216b06cb14.json",
+      "baseline_blob_sha1": "7db10e6e92cbf04878d9018281ca88446b3bbf4a",
+      "sha256": "e50ffed130aa8c1ba1a8dca3430bae01b68a304f35228cfb8fab2716bdef69da",
+      "classification": "legacy content-addressed guidance evidence"
+    },
+    {
+      "path": "net/latest.json",
+      "baseline_blob_sha1": "0d135be578b9530b36033d134f6f8d18cd790ba7",
+      "sha256": "89b7e44d40e9e3de625be27a069600af4c94f974122e4c609230ec0e98cee4e7",
+      "classification": "legacy historical pointer; not a trusted head"
+    },
+    {
+      "path": "twins/edge-demo/inbox/latest.json",
+      "baseline_blob_sha1": "7f72ff54b0b68cf64b72a3566aee6bf9c1dc7175",
+      "sha256": "85da1534a6a0ff3000cd5a011bc63de32b659801044ac2d5ec6384dd073e824a",
+      "classification": "legacy content-addressed inbox evidence"
+    },
+    {
+      "path": "twins/edge-demo/state.json",
+      "baseline_blob_sha1": "64dc53af792c99ce5bed2a8d9ba8802bc65e9090",
+      "sha256": "e089f186f66f6d7d5b5075a625bcfc8c9bdf548befed7ac545307ecb82a51a9f",
+      "classification": "historical twin state evidence"
+    },
+    {
+      "path": "twins/edge-demo/twin.json",
+      "baseline_blob_sha1": "1f4d56fd2d9952d10bbe2d994b3167c00da23b6c",
+      "sha256": "9cd2f78c567ac2f42ecfbc0fcabfa44de660d06619a4258a1a416f55c57df9a6",
+      "classification": "legacy twin identity evidence"
+    },
+    {
+      "path": "twins/edge-mac/inbox/latest.json",
+      "baseline_blob_sha1": "471e18301743bf0668431a0613ec665aa7ab3302",
+      "sha256": "290e8ec2caf988614bd5e75d86e479a41654e5df8d7009644e41aade4393334c",
+      "classification": "legacy content-addressed inbox evidence"
+    },
+    {
+      "path": "twins/edge-mac/state.json",
+      "baseline_blob_sha1": "86ed97fa6c91ceea1a812652011cb70cace712f9",
+      "sha256": "eb9a27700b755ab1be8b1bd4b82fc74a8459d0b21b220acf71c67593fd22db43",
+      "classification": "historical twin state evidence"
+    },
+    {
+      "path": "views/events.json",
+      "baseline_blob_sha1": "ac1f83bd4f6d19987d71fa2f366eb1095d151cd3",
+      "sha256": "b32d730a166d165c1fe021be52250335c5043935f4eab5a783af10b4e20dde29",
+      "classification": "historical materialized event evidence"
+    }
+  ]
+}

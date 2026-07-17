@@ -1,16 +1,16 @@
-name: frame-forge
+name: retired-frame-forge
+
+# Manual dispatch is retained only so the retirement is visible in the Actions UI.
+# The sole job is unconditionally skipped and has no token permissions.
 on:
-  schedule: [{ cron: "17 * * * *" }]   # hourly tick (off-minute to be a good fleet citizen)
-  issues: { types: [opened, labeled] }
   workflow_dispatch:
-permissions: { contents: write, issues: write }
-concurrency: { group: forge, cancel-in-progress: false }
+
+permissions: {}
+
 jobs:
-  forge:
-    runs-on: ubuntu-latest
+  retired:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - run: python3 scripts/frame_loop.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          FRAME_NET: ${{ github.repository }}
+      - name: Retired
+        run: exit 78
