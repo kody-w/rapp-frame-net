@@ -1,5 +1,9 @@
 # rapp-frame-net — retired, read-only evidence
 
+<!-- rapp1:network-header:start -->
+[![RAPP/1](https://kody-w.github.io/rapp-hive-public/portfolio/badges/rapp-frame-net.svg)](https://github.com/kody-w/rapp-hive-public/blob/main/portfolio/repos/rapp-frame-net.md) · **New to RAPP?** [Start here: get your Brainstem →](https://github.com/kody-w/rapp-installer#start-here)
+<!-- rapp1:network-header:end -->
+
 This repository is **not an active RAPP wire**. Its former `rapp-frame/2.0`
 producer, consumer, GitHub Issues write path, and forge workflow were retired
 because they cannot satisfy RAPP/1 without an authenticated registry and
